@@ -254,7 +254,7 @@
 	});
 </script>
 
-<FilesOverlay show={dragged} />
+<!-- <FilesOverlay show={dragged} /> -->
 
 <div class="w-full font-primary">
 	<div class=" -mb-0.5 mx-auto inset-x-0 bg-transparent flex justify-center">
@@ -346,7 +346,7 @@
 	<div class="{transparentBackground ? 'bg-transparent' : 'bg-white dark:bg-gray-900'} ">
 		<div class="max-w-6xl px-4 mx-auto inset-x-0">
 			<div class="">
-				<input
+				<!-- <input
 					bind:this={filesInputElement}
 					bind:files={inputFiles}
 					type="file"
@@ -362,7 +362,7 @@
 
 						filesInputElement.value = '';
 					}}
-				/>
+				/> -->
 
 				{#if recording}
 					<VoiceRecording
@@ -479,7 +479,7 @@
 							{/if}
 
 							<div class=" flex">
-								<div class=" ml-0.5 self-end mb-1.5 flex space-x-1">
+								<!-- <div class=" ml-0.5 self-end mb-1.5 flex space-x-1">
 									<InputMenu
 										bind:webSearchEnabled
 										bind:selectedToolIds
@@ -520,7 +520,7 @@
 											</svg>
 										</button>
 									</InputMenu>
-								</div>
+								</div> -->
 
 								{#if $settings?.richTextInput ?? true}
 									<div
@@ -865,7 +865,7 @@
 									/>
 								{/if}
 
-								<div class="self-end mb-2 flex space-x-1 mr-1">
+								<!-- <div class="self-end mb-2 flex space-x-1 mr-1">
 									{#if !history?.currentId || history.messages[history.currentId]?.done == true}
 										<Tooltip content={$i18n.t('Record voice')}>
 											<button
@@ -914,7 +914,7 @@
 											</button>
 										</Tooltip>
 									{/if}
-								</div>
+								</div> -->
 							</div>
 						</div>
 						<div class="flex items-end w-10">
