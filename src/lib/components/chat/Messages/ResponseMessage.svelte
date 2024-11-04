@@ -119,7 +119,7 @@
 	export let regenerateResponse: Function;
 
 	export let isLastMessage = true;
-	export let readOnly = false;
+	export let readOnly = true;
 
 	let model = null;
 	$: model = $models.find((m) => m.id === message.model);
@@ -710,7 +710,7 @@
 							{/if}
 
 							{#if message.done}
-								{#if !readOnly}
+								<!-- {#if !readOnly}
 									{#if $user.role === 'user' ? ($config?.permissions?.chat?.editing ?? true) : true}
 										<Tooltip content={$i18n.t('Edit')} placement="bottom">
 											<button
@@ -738,7 +738,7 @@
 											</button>
 										</Tooltip>
 									{/if}
-								{/if}
+								{/if} -->
 
 								<Tooltip content={$i18n.t('Copy')} placement="bottom">
 									<button
@@ -766,7 +766,7 @@
 									</button>
 								</Tooltip>
 
-								<Tooltip content={$i18n.t('Read Aloud')} placement="bottom">
+								<!-- <Tooltip content={$i18n.t('Read Aloud')} placement="bottom">
 									<button
 										id="speak-button-{message.id}"
 										class="{isLastMessage
@@ -842,9 +842,9 @@
 											</svg>
 										{/if}
 									</button>
-								</Tooltip>
+								</Tooltip> -->
 
-								{#if $config?.features.enable_image_generation && !readOnly}
+								<!-- {#if $config?.features.enable_image_generation && !readOnly}
 									<Tooltip content={$i18n.t('Generate Image')} placement="bottom">
 										<button
 											class="{isLastMessage
@@ -906,7 +906,7 @@
 											{/if}
 										</button>
 									</Tooltip>
-								{/if}
+								{/if} -->
 
 								{#if message.info}
 									<Tooltip
@@ -1093,7 +1093,7 @@
 									{/if}
 
 									{#if isLastMessage}
-										<Tooltip content={$i18n.t('Continue Response')} placement="bottom">
+										<!-- <Tooltip content={$i18n.t('Continue Response')} placement="bottom">
 											<button
 												type="button"
 												id="continue-response-button"
@@ -1138,7 +1138,7 @@
 													/>
 												</svg>
 											</button>
-										</Tooltip>
+										</Tooltip> -->
 
 										<Tooltip content={$i18n.t('Regenerate')} placement="bottom">
 											<button
