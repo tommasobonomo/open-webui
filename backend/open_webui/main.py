@@ -1585,7 +1585,7 @@ async def generate_title(form_data: dict, user=Depends(get_verified_user)):
         {"role": "assistant", "content": "🤖 Definizione IA"},
         {"role": "user", "content": "Disegna un gatto carino"},
         {"role": "assistant", "content": "🐱 Disegno gatto carino"},
-        {"role": "user", "content": get_last_user_message(messages)},
+        {"role": "user", "content": get_last_user_message(form_data["messages"])},
     ]
 
     payload = {
