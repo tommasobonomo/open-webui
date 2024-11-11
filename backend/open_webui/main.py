@@ -99,6 +99,7 @@ from open_webui.env import (
 )
 from open_webui.utils.misc import (
     add_or_update_system_message,
+    get_content_from_message,
     get_last_user_message,
     prepend_to_first_user_message_content,
 )
@@ -1584,7 +1585,7 @@ async def generate_title(form_data: dict, user=Depends(get_verified_user)):
         {"role": "assistant", "content": "🤖 Definizione IA"},
         {"role": "user", "content": "Disegna un gatto carino"},
         {"role": "assistant", "content": "🐱 Disegno gatto carino"},
-        *form_data["messages"],
+        {"role": "user", "content": get_last_user_message(messages)},
     ]
 
     payload = {
