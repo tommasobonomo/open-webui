@@ -1564,16 +1564,16 @@ async def generate_title(form_data: dict, user=Depends(get_verified_user)):
     messages = [
         {
             "role": "system",
-            "content": "Sei un'intelligenza artificiale che sintetizza messaggi. Non risponderai mai direttamente alla domanda di un utente, ma sintetizzerai il contenuto del messaggio in una breve risposta da tre parole o meno. Inizia sempre il tuo messaggio con un emoji.",
+            "content": "Sei una AI che riassume messaggi. Non risponderai mai direttamente alla domanda di un utente, ma sintetizzerai il contenuto del messaggio in tre parole o meno. Inizia sempre il tuo messaggio con un emoji.",
         },
         {"role": "user", "content": "Chi è il presidente del Gabon?"},
         {"role": "assistant", "content": "🇬🇦 Presidente del Gabon"},
-        {"role": "user", "content": "Chi è Julien Chaumond?"},
-        {"role": "assistant", "content": "🧑 Julien Chaumond"},
+        # {"role": "user", "content": "Chi è Julien Chaumond?"},
+        # {"role": "assistant", "content": "🧑 Julien Chaumond"},
         {"role": "user", "content": "quanto fa 1 + 1?"},
         {"role": "assistant", "content": "🔢 Semplice operazione"},
-        {"role": "user", "content": "Quali sono le ultime notizie?"},
-        {"role": "assistant", "content": "📰 Ultim'ora"},
+        # {"role": "user", "content": "Quali sono le ultime notizie?"},
+        # {"role": "assistant", "content": "📰 Ultim'ora"},
         {"role": "user", "content": "Come fare un cheesecake buonissimo?"},
         {"role": "assistant", "content": "🍰 Ricetta cheesecake"},
         {"role": "user", "content": "Qual è il tuo film preferito? Rispondi in breve."},
@@ -1670,6 +1670,10 @@ Formato JSON: { "tags": ["tag1", "tag2", "tag3"] }
         "messages": [{"role": "user", "content": content}],
         "stream": False,
         "metadata": {"task": str(TASKS.TAGS_GENERATION), "task_body": form_data},
+        "guided_json": {
+            "type": "object",
+            "properties": {"tags": {"type": "array", "items": {"type": "string"}}},
+        },
     }
     log.debug(payload)
 
