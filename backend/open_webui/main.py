@@ -4,10 +4,10 @@ import json
 import logging
 import mimetypes
 import os
+import random
 import shutil
 import sys
 import time
-import random
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -26,40 +26,31 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-from sqlalchemy import text
-from starlette.exceptions import HTTPException as StarletteHTTPException
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import Response, StreamingResponse
-
 from open_webui.apps.audio.main import app as audio_app
 from open_webui.apps.images.main import app as images_app
+from open_webui.apps.ollama.main import GenerateChatCompletionForm
+from open_webui.apps.ollama.main import app as ollama_app
 from open_webui.apps.ollama.main import (
-    app as ollama_app,
-    get_all_models as get_ollama_models,
     generate_chat_completion as generate_ollama_chat_completion,
-    GenerateChatCompletionForm,
 )
+from open_webui.apps.ollama.main import get_all_models as get_ollama_models
+from open_webui.apps.openai.main import app as openai_app
 from open_webui.apps.openai.main import (
-    app as openai_app,
     generate_chat_completion as generate_openai_chat_completion,
-    get_all_models as get_openai_models,
 )
+from open_webui.apps.openai.main import get_all_models as get_openai_models
 from open_webui.apps.retrieval.main import app as retrieval_app
 from open_webui.apps.retrieval.utils import get_rag_context, rag_template
+from open_webui.apps.socket.main import app as socket_app
 from open_webui.apps.socket.main import (
-    app as socket_app,
-    periodic_usage_pool_cleanup,
     get_event_call,
     get_event_emitter,
+    periodic_usage_pool_cleanup,
 )
 from open_webui.apps.webui.internal.db import Session
-from open_webui.apps.webui.main import (
-    app as webui_app,
-    generate_function_chat_completion,
-    get_all_models as get_open_webui_models,
-)
+from open_webui.apps.webui.main import app as webui_app
+from open_webui.apps.webui.main import generate_function_chat_completion
+from open_webui.apps.webui.main import get_all_models as get_open_webui_models
 from open_webui.apps.webui.models.functions import Functions
 from open_webui.apps.webui.models.models import Models
 from open_webui.apps.webui.models.users import UserModel, Users
@@ -73,17 +64,17 @@ from open_webui.config import (
     ENABLE_MODEL_FILTER,
     ENABLE_OLLAMA_API,
     ENABLE_OPENAI_API,
+    ENABLE_SEARCH_QUERY,
     ENV,
     FRONTEND_BUILD_DIR,
     MODEL_FILTER_LIST,
     OAUTH_PROVIDERS,
-    ENABLE_SEARCH_QUERY,
     SEARCH_QUERY_GENERATION_PROMPT_TEMPLATE,
     STATIC_DIR,
+    TAGS_GENERATION_PROMPT_TEMPLATE,
     TASK_MODEL,
     TASK_MODEL_EXTERNAL,
     TITLE_GENERATION_PROMPT_TEMPLATE,
-    TAGS_GENERATION_PROMPT_TEMPLATE,
     TOOLS_FUNCTION_CALLING_PROMPT_TEMPLATE,
     WEBHOOK_URL,
     WEBUI_AUTH,
@@ -95,6 +86,8 @@ from open_webui.constants import TASKS
 from open_webui.env import (
     CHANGELOG,
     GLOBAL_LOG_LEVEL,
+    OFFLINE_MODE,
+    RESET_CONFIG_ON_START,
     SAFE_MODE,
     SRC_LOG_LEVELS,
     VERSION,
@@ -103,8 +96,6 @@ from open_webui.env import (
     WEBUI_SESSION_COOKIE_SAME_SITE,
     WEBUI_SESSION_COOKIE_SECURE,
     WEBUI_URL,
-    RESET_CONFIG_ON_START,
-    OFFLINE_MODE,
 )
 from open_webui.utils.misc import (
     add_or_update_system_message,
@@ -119,10 +110,10 @@ from open_webui.utils.response import (
 )
 from open_webui.utils.security_headers import SecurityHeadersMiddleware
 from open_webui.utils.task import (
-    moa_response_generation_template,
-    tags_generation_template,
-    search_query_generation_template,
     emoji_generation_template,
+    moa_response_generation_template,
+    search_query_generation_template,
+    tags_generation_template,
     title_generation_template,
     tools_function_calling_generation_template,
 )
@@ -134,6 +125,12 @@ from open_webui.utils.utils import (
     get_http_authorization_cred,
     get_verified_user,
 )
+from pydantic import BaseModel
+from sqlalchemy import text
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import Response, StreamingResponse
 
 if SAFE_MODE:
     print("SAFE MODE ENABLED")
@@ -815,7 +812,7 @@ class PipelineMiddleware(BaseHTTPMiddleware):
 app.add_middleware(PipelineMiddleware)
 
 
-from urllib.parse import urlencode, parse_qs, urlparse
+from urllib.parse import parse_qs, urlencode, urlparse
 
 
 class RedirectMiddleware(BaseHTTPMiddleware):
@@ -1535,37 +1532,64 @@ async def generate_title(form_data: dict, user=Depends(get_verified_user)):
     task_model_id = get_task_model_id(model_id)
     print(task_model_id)
 
-    model = app.state.MODELS[task_model_id]
+    #     model = app.state.MODELS[task_model_id]
 
-    if app.state.config.TITLE_GENERATION_PROMPT_TEMPLATE != "":
-        template = app.state.config.TITLE_GENERATION_PROMPT_TEMPLATE
-    else:
-        template = """Create a concise, 3-5 word title with an emoji as a title for the chat history, in the given language. Suitable Emojis for the summary can be used to enhance understanding but avoid quotation marks or special formatting. RESPOND ONLY WITH THE TITLE TEXT.
+    #     if app.state.config.TITLE_GENERATION_PROMPT_TEMPLATE != "":
+    #         template = app.state.config.TITLE_GENERATION_PROMPT_TEMPLATE
+    #     else:
+    #         template = """Create a concise, 3-5 word title with an emoji as a title for the chat history, in the given language. Suitable Emojis for the summary can be used to enhance understanding but avoid quotation marks or special formatting. RESPOND ONLY WITH THE TITLE TEXT.
 
-Examples of titles:
-📉 Stock Market Trends
-🍪 Perfect Chocolate Chip Recipe
-Evolution of Music Streaming
-Remote Work Productivity Tips
-Artificial Intelligence in Healthcare
-🎮 Video Game Development Insights
+    # Examples of titles:
+    # 📉 Stock Market Trends
+    # 🍪 Perfect Chocolate Chip Recipe
+    # Evolution of Music Streaming
+    # Remote Work Productivity Tips
+    # Artificial Intelligence in Healthcare
+    # 🎮 Video Game Development Insights
 
-<chat_history>
-{{MESSAGES:END:2}}
-</chat_history>"""
+    # <chat_history>
+    # {{MESSAGES:END:2}}
+    # </chat_history>"""
 
-    content = title_generation_template(
-        template,
-        form_data["messages"],
+    #     content = title_generation_template(
+    #         template,
+    #         form_data["messages"],
+    #         {
+    #             "name": user.name,
+    #             "location": user.info.get("location") if user.info else None,
+    #         },
+    #     )
+
+    messages = [
         {
-            "name": user.name,
-            "location": user.info.get("location") if user.info else None,
+            "role": "system",
+            "content": "Sei un'intelligenza artificiale che sintetizza messaggi. Non risponderai mai direttamente alla domanda di un utente, ma sintetizzerai il contenuto del messaggio in una breve risposta da tre parole o meno. Inizia sempre il tuo messaggio con un emoji.",
         },
-    )
+        {"role": "user", "content": "Chi è il presidente del Gabon?"},
+        {"role": "assistant", "content": "🇬🇦 Presidente del Gabon"},
+        {"role": "user", "content": "Chi è Julien Chaumond?"},
+        {"role": "assistant", "content": "🧑 Julien Chaumond"},
+        {"role": "user", "content": "quanto fa 1 + 1?"},
+        {"role": "assistant", "content": "🔢 Semplice operazione"},
+        {"role": "user", "content": "Quali sono le ultime notizie?"},
+        {"role": "assistant", "content": "📰 Ultim'ora"},
+        {"role": "user", "content": "Come fare un cheesecake buonissimo?"},
+        {"role": "assistant", "content": "🍰 Ricetta cheesecake"},
+        {"role": "user", "content": "Qual è il tuo film preferito? Rispondi in breve."},
+        {"role": "assistant", "content": "🎥 Film preferito"},
+        {
+            "role": "user",
+            "content": "Spiega il concetto di intelligenza artificiale in una frase.",
+        },
+        {"role": "assistant", "content": "🤖 Definizione IA"},
+        {"role": "user", "content": "Disegna un gatto carino"},
+        {"role": "assistant", "content": "🐱 Disegno gatto carino"},
+        *form_data["messages"],
+    ]
 
     payload = {
         "model": task_model_id,
-        "messages": [{"role": "user", "content": content}],
+        "messages": messages,
         "stream": False,
         **(
             {"max_tokens": 50}
@@ -1618,19 +1642,19 @@ async def generate_chat_tags(form_data: dict, user=Depends(get_verified_user)):
         template = app.state.config.TAGS_GENERATION_PROMPT_TEMPLATE
     else:
         template = """### Task:
-Generate 1-3 broad tags categorizing the main themes of the chat history, along with 1-3 more specific subtopic tags.
+Genera da 1 a 3 tag generci che categorizzino i temi principali della chat, insieme ad altri 1-3 tag più specifici.
 
-### Guidelines:
-- Start with high-level domains (e.g. Science, Technology, Philosophy, Arts, Politics, Business, Health, Sports, Entertainment, Education)
-- Consider including relevant subfields/subdomains if they are strongly represented throughout the conversation
-- If content is too short (less than 3 messages) or too diverse, use only ["General"]
-- Use the chat's primary language; default to English if multilingual
-- Prioritize accuracy over specificity
+### Linee guida:
+- Comincia con domini di alto livello (es. Scienza, Tecnologia, Filosofia, Arte, Politica, Business, Salute, Sport, Intrattenimento, Educazione)
+- Includi sottodomini o campi specifici se sono fortemente rappresentati nella conversazione
+- Se il contenuto è troppo breve (meno di 3 messaggi) o troppo diversificato, usa solo ["Generale"]
+- Usa la lingua principale della chat
+- Priorizza l'accuratezza sulla specificità
 
 ### Output:
-JSON format: { "tags": ["tag1", "tag2", "tag3"] }
+Formato JSON: { "tags": ["tag1", "tag2", "tag3"] }
 
-### Chat History:
+### Cronologia della chat:
 <chat_history>
 {{MESSAGES:END:6}}
 </chat_history>"""
