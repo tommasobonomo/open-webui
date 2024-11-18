@@ -621,7 +621,7 @@
 											if (type === 'explain') {
 												dispatch('submit', {
 													parentId: message.id,
-													prompt: `Explain this section to me in more detail\n\n\`\`\`\n${content}\n\`\`\``
+													prompt: `Spiegami nel dettaglio questa sezione\n\n\`\`\`\n${content}\n\`\`\``
 												});
 											} else if (type === 'ask') {
 												const input = e.detail?.input ?? '';
