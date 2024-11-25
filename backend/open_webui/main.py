@@ -1564,16 +1564,16 @@ async def generate_title(form_data: dict, user=Depends(get_verified_user)):
     messages = [
         {
             "role": "system",
-            "content": "Sei una AI che riassume messaggi. Non risponderai mai direttamente alla domanda di un utente, ma sintetizzerai il contenuto del messaggio in tre parole o meno. Inizia sempre il tuo messaggio con un emoji.",
+            "content": "## Istruzioni\n Sei un assistente specializzato nella sintesi estrema. Il tuo compito è distillare l'essenza di qualsiasi messaggio dell'utente in non più di tre parole. Devi sempre iniziare con un'emoji pertinente al contenuto. LA RISPOSTA DEVE ESSERE CORTA, MASSIMO 3 PAROLE.",
         },
         {"role": "user", "content": "Chi è il presidente del Gabon?"},
         {"role": "assistant", "content": "🇬🇦 Presidente del Gabon"},
-        # {"role": "user", "content": "Chi è Julien Chaumond?"},
-        # {"role": "assistant", "content": "🧑 Julien Chaumond"},
+        {"role": "user", "content": "Chi è Donald Trump?"},
+        {"role": "assistant", "content": "🧑 Donald Trump"},
         {"role": "user", "content": "quanto fa 1 + 1?"},
         {"role": "assistant", "content": "🔢 Semplice operazione"},
-        # {"role": "user", "content": "Quali sono le ultime notizie?"},
-        # {"role": "assistant", "content": "📰 Ultim'ora"},
+        {"role": "user", "content": "Quali sono le ultime notizie?"},
+        {"role": "assistant", "content": "📰 Ultim'ora"},
         {"role": "user", "content": "Come fare un cheesecake buonissimo?"},
         {"role": "assistant", "content": "🍰 Ricetta cheesecake"},
         {"role": "user", "content": "Qual è il tuo film preferito? Rispondi in breve."},
@@ -1583,8 +1583,8 @@ async def generate_title(form_data: dict, user=Depends(get_verified_user)):
             "content": "Spiega il concetto di intelligenza artificiale in una frase.",
         },
         {"role": "assistant", "content": "🤖 Definizione IA"},
-        {"role": "user", "content": "Disegna un gatto carino"},
-        {"role": "assistant", "content": "🐱 Disegno gatto carino"},
+        {"role": "user", "content": "Come si arriva da Roma a Napoli in treno"},
+        {"role": "assistant", "content": "🚄 Roma-Napoli in treno"},
         {"role": "user", "content": get_last_user_message(form_data["messages"])},
     ]
 
